@@ -21,21 +21,27 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 # --- Helper Functions ---
 def load_state():
-    if not SUPABASE_URL or not SUPABASE_KEY: return []
+    if not SUPABASE_URL or not SUPABASE_KEY: 
+        return [], False
     try:
         from supabase import create_client, Client
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         response = supabase.table("job_state").select("keywords").eq("id", 1).execute()
-        return response.data[0].get("keywords", []) if response.data else []
-    except: return []
+        return (response.data[0].get("keywords", []) if response.data else []), True
+    except Exception as e:
+        print(f"Load Error: {e}")
+        return [], False
 
 def save_state(matched_keywords):
-    if not SUPABASE_URL or not SUPABASE_KEY: return
+    if not SUPABASE_URL or not SUPABASE_KEY: return False
     try:
         from supabase import create_client, Client
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         supabase.table("job_state").upsert({"id": 1, "keywords": matched_keywords}).execute()
-    except: pass
+        return True
+    except Exception as e:
+        print(f"Save Error: {e}")
+        return False
 
 def send_telegram_message(matched_keywords):
     if not BOT_TOKEN or not CHAT_ID: return False
@@ -52,19 +58,24 @@ def scrape_jobs():
     try:
         response = requests.get(TARGET_URL, headers=HEADERS, timeout=15)
         response.raise_for_status()
-    except: return {"success": False, "error": "Failed to fetch URL"}
+    except: return {"success": False, "error": "Failed to fetch vacancies page"}
 
     soup = BeautifulSoup(response.text, 'html.parser')
     page_text = soup.get_text(separator=' ', strip=True).lower()
     found_keywords = [kw for kw in KEYWORDS if kw in page_text]
-    previous_keywords = load_state()
+    previous_keywords, db_ok = load_state()
+
+    if not db_ok:
+        return {"success": False, "error": "Database connection failed. Bot cannot remember previous state."}
 
     new_found = False
     if found_keywords:
         if sorted(found_keywords) != sorted(previous_keywords):
             send_telegram_message(found_keywords)
-            save_state(found_keywords)
-            new_found = True
+            if save_state(found_keywords):
+                new_found = True
+            else:
+                return {"success": False, "error": "Failed to save state to database."}
     elif previous_keywords:
         save_state([])
 
@@ -82,9 +93,10 @@ class handler(BaseHTTPRequestHandler):
         
         # Route: API Data
         if self.path == '/api/data':
-            last_keywords = load_state()
+            last_keywords, db_ok = load_state()
             data = {
                 "status": "online",
+                "database_connected": db_ok,
                 "target_url": TARGET_URL,
                 "keywords": KEYWORDS,
                 "last_scan_result": last_keywords,
