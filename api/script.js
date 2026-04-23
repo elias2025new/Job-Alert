@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Fetch error:', error);
-            showToast('Could not connect to bot API.', 'error');
+            const statusMsg = error.message.includes('HTTP error') ? ` (Status: ${error.message.split(': ')[1]})` : '';
+            showToast(`Could not connect to bot API${statusMsg}`, 'error');
             statusText.textContent = 'Connection Error';
             const pulse = document.querySelector('.pulse');
             pulse.style.backgroundColor = 'var(--error)';
