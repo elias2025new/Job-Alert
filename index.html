@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Alert Bot Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Dashboard for the Job Alert Bot - Monitoring IT vacancies at Ethiopian Skylight Hotel.">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <main class="app-container">
+        <header class="glass-card header">
+            <h1>Job Alert <span class="accent">Bot</span></h1>
+            <div id="bot-status" class="status-indicator">
+                <span class="pulse"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <section class="glass-card dashboard">
+            <div class="info-section">
+                <h3>Target Source</h3>
+                <a href="https://www.ethiopianskylighthotel.com/vacancies" target="_blank" class="url-badge" id="target-url">
+                    ethiopianskylighthotel.com/vacancies
+                </a>
+            </div>
+
+            <div class="info-section">
+                <h3>Monitored Keywords</h3>
+                <div id="keywords-list" class="tag-cloud">
+                    <!-- Keywords will be injected here -->
+                    <span class="skeleton-tag"></span>
+                    <span class="skeleton-tag"></span>
+                    <span class="skeleton-tag"></span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Last Scan Result</h3>
+                <div id="last-result" class="result-box">
+                    <p class="empty-state">No data available</p>
+                </div>
+            </div>
+
+            <button id="scan-btn" class="primary-btn">
+                <span class="btn-text">Trigger Manual Scan</span>
+                <div class="loader hidden"></div>
+            </button>
+        </section>
+
+        <footer class="footer">
+            <p>Vercel Deployment &bull; Telegram Notifications Active</p>
+        </footer>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
