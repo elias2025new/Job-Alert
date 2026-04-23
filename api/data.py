@@ -22,14 +22,19 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 def load_state():
     if not SUPABASE_URL or not SUPABASE_KEY:
+        print("Missing Supabase credentials")
         return []
     try:
+        # Import inside function to prevent top-level hangs
+        from supabase import create_client, Client
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        # Add a small timeout if possible, or just rely on Vercel's limit
         response = supabase.table("job_state").select("keywords").eq("id", 1).execute()
         if response.data:
             return response.data[0].get("keywords", [])
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Supabase error: {str(e)}")
+        return []
     return []
 
 class handler(BaseHTTPRequestHandler):

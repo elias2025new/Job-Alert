@@ -25,22 +25,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- API Interactions ---
     async function fetchBotData() {
         try {
+            console.log('Fetching bot data...');
             const response = await fetch('/api/data');
-            if (!response.ok) throw new Error('Failed to fetch bot data');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             const data = await response.json();
+            console.log('Data received:', data);
             
             // Update UI
             updateStatus(data.status);
             
             // Keywords
             keywordsList.innerHTML = '';
-            data.keywords.forEach(kw => {
-                const span = document.createElement('span');
-                span.className = 'tag';
-                span.textContent = kw;
-                keywordsList.appendChild(span);
-            });
+            if (data.keywords && data.keywords.length > 0) {
+                data.keywords.forEach(kw => {
+                    const span = document.createElement('span');
+                    span.className = 'tag';
+                    span.textContent = kw;
+                    keywordsList.appendChild(span);
+                });
+            } else {
+                keywordsList.innerHTML = '<p class="empty-state">No keywords configured</p>';
+            }
 
             // Last Scan Result
             if (data.last_scan_result && data.last_scan_result.length > 0) {
@@ -50,9 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            console.error(error);
-            showToast('Connection error. Check console.', 'error');
-            updateStatus('offline');
+            console.error('Fetch error:', error);
+            showToast('Could not connect to bot API.', 'error');
+            statusText.textContent = 'Connection Error';
+            const pulse = document.querySelector('.pulse');
+            pulse.style.backgroundColor = 'var(--error)';
+            pulse.style.animation = 'none';
         }
     }
 
